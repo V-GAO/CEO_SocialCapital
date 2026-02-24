@@ -38,7 +38,8 @@ cols_origin = ['TCUID',
 'GHG-Total (USD mn)',
 'GHG-Direct Impact Ratio (%)',
 'GHG-Indirect Impact Ratio (%)',
-'GHG-Total Impact Ratio (%)']
+'GHG-Total Impact Ratio (%)',
+'EffectiveDate']
 cols_rename = {
     'TCUID': 'TCUID',
 'Company': 'Company',
@@ -72,7 +73,8 @@ cols_rename = {
 'GHG-Total (USD mn)': 'GHG_Total(USDmn)',
 'GHG-Direct Impact Ratio (%)': 'GHG_DirectImpactRatio',
 'GHG-Indirect Impact Ratio (%)': 'GHG_IndirectImpactRatio',
-'GHG-Total Impact Ratio (%)': 'GHG_TotalImpactRatio'
+'GHG-Total Impact Ratio (%)': 'GHG_TotalImpactRatio',
+'EffectiveDate': 'EffectiveDate'
 }
 
 trucost_use = df[cols_origin]
