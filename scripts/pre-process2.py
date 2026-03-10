@@ -1,3 +1,6 @@
+'''
+Due to previous sorting failure, the new pre-process is created
+'''
 import pandas as pd
 import s3fs
 import numpy as np
@@ -10,6 +13,7 @@ def quantile_sort(group, cols):
         result[col] = pd.qcut(group[col], q=5, labels=False, duplicates='drop')
     return result
 
+cols_to_sort = list(trucost_use.iloc[:, 14:34])
 # perform nested sorting by FinancialYear, Country, GICS_Industry_Name
 result = trucost_use.groupby(['FinancialYear', 'Country', 'GICS_Industry_Name']).apply(
     lambda x: quantile_sort(x, cols_to_sort)
