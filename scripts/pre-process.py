@@ -95,4 +95,4 @@ result = trucost_use.groupby(['FinancialYear', 'Country', 'GICS_Industry_Name'])
     lambda x: quantile_sort(x, cols_to_sort)
     ).reset_index(drop=True)
 
-result.to_csv('s3://buc-vin0358/trucost_use_sorted.csv', index=False)
+result.to_csv('s3://buc-vin0358/trucost_use_sorted_countryIndustry.csv', index=False)
