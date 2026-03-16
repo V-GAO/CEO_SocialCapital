@@ -36,6 +36,15 @@ WHERE indfmt = 'INDL'
     AND consol = 'C'
 """
 
+queries = (query_ccm, query_crsp_m, query_comp_a)
+
 def get_wrds(permno_list, queries):
     permno_list = permno_list
     # queries can be tuple of strings
+    queries = queries
+
+    # 1. Load CCM link table
+
+    # 2. Load CRSP monthly data
+
+    # 3. Load COMPUSTAT fundamentals
