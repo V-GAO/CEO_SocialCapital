@@ -16,3 +16,4 @@ openbb
 scikit-learn
 scipy
 statsmodels
+wrds

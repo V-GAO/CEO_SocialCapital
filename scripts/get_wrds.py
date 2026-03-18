@@ -7,37 +7,6 @@ import wrds
 db = wrds.Connection(wrds_username='vincent0358')
 id_file = "s3://buc-vin0358/US_isin_cusip_permno_ticker_expand.csv"
 
-query_ccm = """
-SELECT gvkey,
-       lpermno AS permno,
-       lpermco AS permco,
-       linktype,
-       linkprim,
-       linkdt,
-       linkenddt
-FROM crsp.ccmxpf_linktable
-WHERE (linktype IN ('LU', 'LC'))
-    AND linkprim IN ('P', 'C')
-    AND usedflag = 1
-"""
-
-query_crsp_m = f"""
-SELECT permno, date, ret, shrout, prc
-FROM crsp.msf
-WHERE permno IN ({permnos})
-    AND date >= '2004-12-31'
-"""
-
-query_comp_a = """
-SELECT gvkey, datadate, at, ceq, sale, ni
-FROM comp.funda
-WHERE indfmt = 'INDL'
-    AND datadate >= '2004-12-31'
-    AND datafmt = 'STD'
-    AND popsrc = 'D'
-    AND consol = 'C'
-"""
-
 isin_cusip_expand = pd.read_csv(id_file)
 unique_id = isin_cusip_expand['permno'].unique()
 unique_id_df = pd.DataFrame(unique_id)
@@ -46,7 +15,7 @@ permno_list = ','.join(str(key) for key in unique_id_df['permno'])
 
 def get_wrds(
     db,
-    permnos=permno_list,
+    permnos=None,
     start_date='2004-12-31',
     end_date='2025-12-31',
     data_freq='annual' # data_freq can be annual(funda) or quarterly(fundq); for fundamental data
@@ -100,6 +69,36 @@ def get_wrds(
 
     return merged_use # return clean df
 
-get_wrds(db, permnos=permno_list)
-merge_use.to_csv("s3://buc-vin0358/wrds_merged_firstTry.csv")
+query_ccm = """
+SELECT gvkey,
+       lpermno AS permno,
+       lpermco AS permco,
+       linktype,
+       linkprim,
+       linkdt,
+       linkenddt
+FROM crsp.ccmxpf_linktable
+WHERE (linktype IN ('LU', 'LC'))
+    AND linkprim IN ('P', 'C')
+    AND usedflag = 1
+"""
 
+query_crsp_m = f"""
+SELECT permno, date, ret, shrout, prc
+FROM crsp.msf
+WHERE permno IN ({permno_list})
+    AND date >= '2004-12-31'
+"""
+
+query_comp_a = """
+SELECT gvkey, datadate, at, ceq, sale, ni
+FROM comp.funda
+WHERE indfmt = 'INDL'
+    AND datadate >= '2004-12-31'
+    AND datafmt = 'STD'
+    AND popsrc = 'D'
+    AND consol = 'C'
+"""
+
+merged_use = get_wrds(db, permnos=permno_list)
+merged_use.to_csv("s3://buc-vin0358/wrds_merged_firstTry.csv")
