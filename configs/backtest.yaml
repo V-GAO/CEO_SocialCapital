@@ -1,0 +1,25 @@
+# Backtest / portfolio construction configuration.
+
+rebalance_frequency: "monthly"
+
+quantiles:
+  n_quantiles: 5
+  long_quantile: 5
+  short_quantile: 1
+
+weighting:
+  scheme: "equal"  # "equal" or "value"
+
+transaction_costs:
+  cost_bps: 10.0
+
+performance:
+  periods_per_year: 12
+  risk_free_rate: 0.0
+  rolling_sharpe_window: 12
+
+fama_macbeth:
+  newey_west_lags: 3
+
+out_of_sample:
+  train_frac: 0.7

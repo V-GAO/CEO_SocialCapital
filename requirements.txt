@@ -17,3 +17,7 @@ scikit-learn
 scipy
 statsmodels
 wrds
+networkx
+python-igraph
+pyyaml
+pytest-cov

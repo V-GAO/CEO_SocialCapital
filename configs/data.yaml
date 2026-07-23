@@ -1,0 +1,115 @@
+# Data collection configuration.
+#
+# NOTE: BoardEx table/column names on WRDS vary by subscription vintage.
+# Verify `library`, `table`, and column names against your own WRDS
+# BoardEx schema browser (https://wrds-www.wharton.upenn.edu/) before
+# running the collection scripts. Placeholders below MUST be confirmed.
+
+universe:
+  name: "sp1500"
+  # WRDS library/table used to resolve the S&P 1500 constituent history.
+  index_library: "comp_na_daily_all" # get current S&P 1500 constituents
+  index_table: "wrds_idx_cst_current"
+  index_name: "S&P Composite 1500"  # use index_name to find correct constituents
+  index_id: "2668872"
+
+fundamentals:
+  wrds_library: "comp"
+  wrds_table: "funda"
+  frequency: "annual"
+  start_date: "2000-01-01"
+  end_date: null  # null = up to latest available
+  columns:
+    - gvkey
+    - datadate
+    - fyear
+    - at
+    - sale
+    - ni
+    - ceq
+    - mkvalt
+    #- sic # industry info cannot be obtained from WRDS at the moment
+
+ceo_social_capital:
+  # BoardEx access via WRDS. Fill in the exact library/table after
+  # confirming in the WRDS BoardEx schema browser.
+  wrds_library: "boardex_na"
+  wrds_table: "na_wrds_individual_networks"
+  start_year_column: "overlapyearstart"  # e.g. RoleStartYear (4-digit int)
+  end_year_column: "overlapyearend"       # e.g. RoleEndYear (4-digit int, NULL if active)
+  entity_id_column: "directorid"
+  ceo_sample_path: "data/raw/ceo_sample.parquet"
+  ceo_sample_id_column: "directorid_starting" # parquet has lower-case column names
+  # BoardEx/WRDS enforces a maximum date-range window per query.
+  max_query_window_days: 3600
+  # Number of CEO director_ids per query (second chunking dimension, in
+  # addition to the date window). Now that fetch results are streamed to
+  # disk (see fetch_chunksize/return_iter in wrds_client.py), this no
+  # longer needs to be small to control memory -- keep it large to avoid
+  # multiplying full-table-scan query count. Set above the CEO sample
+  # size to effectively disable batching.
+  ceo_id_batch_size: 35000
+  # Rows fetched per network round-trip; streamed straight to disk rather
+  # than buffered fully in memory (avoids OOM on large result sets).
+  fetch_chunksize: 50000
+  start_date: "2000-01-01"
+  end_date: null
+  raw_output_dir: "data/raw/ceo_sc"
+  columns:
+  
+
+network_panel:
+  # Point-in-time ("as-of") CEO social network snapshots, to avoid
+  # look-ahead bias when used as trading-strategy features: a snapshot
+  # for year Y only includes BoardEx connections with start_year <= Y.
+  source_column: "dirid_starting"
+  target_column: "dirid_connected"
+  start_year_column: "start_year"
+  end_year_column: "end_year"
+  edges_core_path: "data/processed/ceo_sc_edges_core.parquet"
+  year_start: 2000
+  year_end: 2026
+  cumulative_output_path: "data/processed/network_metrics_cumulative.parquet"
+  active_output_path: "data/processed/network_metrics_active.parquet"
+
+ceo_sample:
+  # BoardEx "Organization - Composition of Officers, Directors and Senior
+  # Managers" table. Verify table/column names against the WRDS BoardEx
+  # schema browser before running.
+  wrds_library: "boardex_na"
+  wrds_table: "na_wrds_org_composition"
+  company_id_column: "companyid"
+  role_column: "rolename"
+  ceo_role_keywords:
+    - "%CEO%"
+    - "%Chief Executive%"
+  exclude_role_keywords:
+    - "%interim CEO%"
+  linking_table_path: "data/raw/linking_table.parquet"
+  output_path: "data/raw/ceo_sample.parquet"
+
+linking_table:
+  # Maps company identifiers (gvkey/permco) to CEO/director identifiers
+  # (BoardEx director_id) over time.
+  source: "wrds"
+  wrds_library: "wrdsapps_link_crsp_comp_bdx"
+  wrds_table: "bdxcrspcomplink"
+  columns:
+    - permco
+    - gvkey
+    - companyid
+    - score
+    - preferred
+
+backtest_data:
+  wrds_library: "crsp"
+  wrds_table: "msf"
+  frequency: "monthly"
+  start_date: "2000-01-01"
+  end_date: null
+  columns:
+    - permco
+    - date
+    - ret
+    - prc
+    - shrout

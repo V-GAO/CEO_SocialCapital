@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ceo-sc"
+version = "0.1.0"
+description = "Research pipeline for the CEO Social Capital (CEO_SC) alpha factor"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas",
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "statsmodels",
+    "networkx",
+    "matplotlib",
+    "seaborn",
+    "wrds",
+    "python-dotenv",
+    "pyyaml",
+    "tqdm",
+    "duckdb",
+    "polars",
+    "pyarrow",
+    "requests",
+    "s3fs",
+    "boto3"
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "jupyter"]
+igraph = ["python-igraph"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

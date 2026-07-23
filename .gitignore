@@ -15,6 +15,9 @@ __pycache__/
 venv/
 env/
 
+# Environment / credentials
+.env
+
 # -------------------------
 # Jupyter Notebooks
 # -------------------------
@@ -36,7 +39,7 @@ Thumbs.db
 # -------------------------
 # Local data (never commit raw data)
 # -------------------------
-data/
+/data/
 
 # -------------------------
 # Cache directories
@@ -44,3 +47,18 @@ data/
 .cache/
 .pytest_cache/
 .mypy_cache/
+
+# -------------------------
+# Instructions
+# -------------------------
+Project_workflow.md
+
+# -------------------------
+# Test files
+# -------------------------
+test.ipynb
+
+# -------------------------
+# Notebooks
+# -------------------------
+notebooks/EDA_WRDS.ipynb

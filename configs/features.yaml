@@ -1,0 +1,21 @@
+# Feature engineering configuration.
+
+winsorization:
+  lower: 0.01
+  upper: 0.99
+
+standardization:
+  method: "zscore"
+
+neutralization:
+  industry_col: "industry"
+  market_cap_col: "market_cap"
+
+lagging:
+  periods: 1  # lag CEO_SC network metrics by 1 period to avoid look-ahead bias
+
+ranking:
+  pct: true
+
+validation:
+  max_nan_frac: 0.5
