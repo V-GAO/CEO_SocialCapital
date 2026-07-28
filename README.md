@@ -2,7 +2,9 @@
 
 Production-style research pipeline for the **CEO Social Capital (CEO_SC)** alpha
 factor: does a CEO's position in the executive/director social network
-(BoardEx) predict company stock returns? Ispired by the research paper \link{https://drive.google.com/file/d/1t5ypOE0pggnoA5jMa695AGZmm9vA-CU1/view}
+(BoardEx) predict company stock returns? Ispired by the research paper https://drive.google.com/file/d/1t5ypOE0pggnoA5jMa695AGZmm9vA-CU1/view.
+
+See https://github.com/V-GAO/CEO_SocialCapital/blob/main/research_summary/research_summary.ipynb for a summary of the research results.
 
 ## Project structure
 
@@ -44,6 +46,7 @@ python scripts/06_build_connection_panel.py
 python scripts/07_merge_panel.py
 python scripts/08_merge_returns.py
 python scripts/09_feature_engineering_connections.py
+python scripts/12_build_pca.composite_factors.py
 python scripts/10_run_research.py
 python scripts/11_run_econometrics_and_portfolio.py
 ```
