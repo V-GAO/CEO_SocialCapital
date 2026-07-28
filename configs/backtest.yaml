@@ -14,9 +14,13 @@ transaction_costs:
   cost_bps: 10.0
 
 performance:
-  periods_per_year: 12
+  # Research panel (data/processed/panel_with_returns.parquet) is annual
+  # (DATE_COL="year", one row per CEO/firm/year) -- periods_per_year must
+  # match that granularity, or annualized_return/Sharpe get inflated (e.g.
+  # by 12x/sqrt(12) if left at a monthly value of 12).
+  periods_per_year: 1
   risk_free_rate: 0.0
-  rolling_sharpe_window: 12
+  rolling_sharpe_window: 3
 
 fama_macbeth:
   newey_west_lags: 3

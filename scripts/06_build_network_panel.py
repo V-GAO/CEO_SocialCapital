@@ -15,7 +15,7 @@ import argparse
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from ceo_sc.network.edges import build_edges_core, load_asof_edges
+from ceo_sc.network.edges import asof_edges_from_frame, build_edges_core, load_edges_core_frame
 from ceo_sc.network.metrics import compute_metrics_hybrid
 from ceo_sc.utils.config import configs_dir, load_config, project_root
 from ceo_sc.utils.logging_utils import get_logger
@@ -49,13 +49,20 @@ def main(force_edges_core: bool = False) -> None:
 
     years = range(ncfg["year_start"], ncfg["year_end"] + 1)
 
+    # Load the edges-core file into memory once (sorted by start year) and
+    # reuse it across both modes x all years, instead of re-reading and
+    # decompressing the same Parquet file from disk on every (year, mode)
+    # iteration -- the dominant cost of building this panel.
+    edges_core_df = load_edges_core_frame(edges_core_path, source_col, target_col, start_col, end_col)
+    logger.info("Loaded edges core into memory: %d rows", len(edges_core_df))
+
     for mode, out_key in (("cumulative", "cumulative_output_path"), ("active", "active_output_path")):
         out_path = project_root() / ncfg[out_key]
         out_path.parent.mkdir(parents=True, exist_ok=True)
         writer = None
         try:
             for year in years:
-                edges = load_asof_edges(edges_core_path, year, mode, source_col, target_col, start_col, end_col)
+                edges = asof_edges_from_frame(edges_core_df, year, mode, source_col, target_col, start_col, end_col)
                 metrics = compute_metrics_hybrid(edges, source=source_col, target=target_col)
                 metrics = metrics.reset_index()  # index.name == "node_id"
                 metrics["year"] = year

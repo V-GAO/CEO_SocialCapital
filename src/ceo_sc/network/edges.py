@@ -28,6 +28,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -104,12 +105,71 @@ def load_asof_edges(
     convention (see module docstring). Only ``start_col <= as_of_year`` is
     ever used as a predicate, so a future connection can never leak into
     an earlier snapshot.
+
+    Reads and decompresses the edges-core file from disk on every call --
+    fine for a single as-of snapshot, but when building a full multi-year
+    panel (as in 06_build_network_panel.py), prefer loading the file once
+    with :func:`load_edges_core_frame` and slicing per year with
+    :func:`asof_edges_from_frame` instead, to avoid re-reading/decompressing
+    the same file from disk once per (year, mode) pair.
     """
     if mode not in ("cumulative", "active"):
         raise ValueError(f"mode must be 'cumulative' or 'active', got {mode!r}")
 
     filters = [(start_col, "<=", as_of_year)]
     df = pd.read_parquet(edges_core_path, filters=filters)
+
+    if mode == "active":
+        is_ongoing = df[end_col].isna()
+        is_still_active = df[end_col] >= as_of_year
+        df = df[is_ongoing | is_still_active]
+
+    return df[[source_col, target_col]].drop_duplicates()
+
+
+def load_edges_core_frame(
+    edges_core_path: Path,
+    source_col: str,
+    target_col: str,
+    start_col: str,
+    end_col: str,
+) -> pd.DataFrame:
+    """Load the edges-core Parquet file into memory once, sorted by
+    ``start_col``.
+
+    Intended for building a full multi-year as-of panel: reading and
+    decompressing a large Parquet file from disk is the dominant cost of
+    ``load_asof_edges``, and doing it once per (year, mode) pair is
+    wasteful when the same underlying rows are re-read (and increasingly
+    so, since the "cumulative" filter only grows with year) on every
+    iteration. Sorting by ``start_col`` here lets :func:`asof_edges_from_frame`
+    slice the "as of" rows with a fast in-memory binary search instead of
+    re-scanning/re-filtering the whole frame from scratch each time.
+    """
+    df = pd.read_parquet(edges_core_path, columns=[source_col, target_col, start_col, end_col])
+    return df.sort_values(start_col, kind="mergesort", ignore_index=True)
+
+
+def asof_edges_from_frame(
+    edges_core_df: pd.DataFrame,
+    as_of_year: int,
+    mode: str,
+    source_col: str,
+    target_col: str,
+    start_col: str,
+    end_col: str,
+) -> pd.DataFrame:
+    """In-memory equivalent of :func:`load_asof_edges`, operating on a frame
+    already loaded via :func:`load_edges_core_frame` (sorted by ``start_col``).
+
+    Uses a binary search on the pre-sorted ``start_col`` to slice the
+    "as of" rows in O(log n), rather than re-scanning the whole frame.
+    """
+    if mode not in ("cumulative", "active"):
+        raise ValueError(f"mode must be 'cumulative' or 'active', got {mode!r}")
+
+    end_idx = int(np.searchsorted(edges_core_df[start_col].to_numpy(), as_of_year, side="right"))
+    df = edges_core_df.iloc[:end_idx]
 
     if mode == "active":
         is_ongoing = df[end_col].isna()

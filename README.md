@@ -20,6 +20,7 @@ src/ceo_sc/
 scripts/                   Numbered pipeline entry points (01_... through 08_...)
 tests/                     pytest unit tests (synthetic data, no WRDS required)
 data/                      Local raw/processed data (git-ignored)
+research_summary/          Jupyter notebook with research results and visualizations
 ```
 
 ## Setup

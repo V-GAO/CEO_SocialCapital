@@ -51,12 +51,14 @@ def main() -> None:
     )
 
     # Annual return = product of (1 + monthly returns) - 1, compounded within year
+    has_siccd = "siccd" in ret_cols
     annual_ret = (
         ret
         .group_by([id_col, "year"])
         .agg(
             (pl.col("ret").add(1).product() - 1).alias("annual_return"),
             pl.col("ret").count().alias("n_months"),
+            *([pl.col("siccd").first().alias("siccd")] if has_siccd else []),
         )
         .filter(pl.col("n_months") >= 6)  # require at least 6 months of data
         .sort([id_col, "year"])
@@ -86,11 +88,15 @@ def main() -> None:
     # Merge via gvkey + year (features panel has gvkey from merged_panel)
     if "gvkey" not in features.columns:
         logger.error("connection_features.parquet has no 'gvkey' column. "
-                     "Run 09_merge_panel.py then 08_feature_engineer_connections.py first.")
+                     "Run 07_merge_panel.py then 08_feature_engineer_connections.py first.")
         return
 
+    merge_cols = [id_col, "year", "annual_return", "forward_return"]
+    if has_siccd:
+        merge_cols.append("siccd")
+
     panel = features.join(
-        annual_ret.select([id_col, "year", "annual_return", "forward_return"]),
+        annual_ret.select(merge_cols),
         on=["gvkey", "year"],
         how="left",
     )

@@ -108,8 +108,20 @@ backtest_data:
   start_date: "2000-01-01"
   end_date: null
   columns:
+    - permno
     - permco
     - date
     - ret
     - prc
     - shrout
+
+industry_data:
+  wrds_library: "crsp"
+  wrds_table: "stocknames"
+  start_date: "2000-01-01"
+  end_date: null
+  columns:
+    - permco
+    - siccd
+    - namedt
+    - nameenddt
